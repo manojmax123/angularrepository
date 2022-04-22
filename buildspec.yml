@@ -1,0 +1,85 @@
+version: 0.2
+
+phases:
+
+  pre_build:
+
+    commands:
+
+      - "echo Logging in to Docker Hub..."
+
+      - "echo Logging in to Amazon ECR..."
+
+      - aws --version
+
+      - name=angularrepo
+
+      - aws ecr get-login-password --region ap-south-1 | docker login --username AWS --password-stdin 125571554996.dkr.ecr.ap-south-1.amazonaws.com
+
+      - COMMIT_HASH=$(echo $CODEBUILD_RESOLVED_SOURCE_VERSION | cut -c 1-7)
+
+      - IMAGE_TAG=build-$(echo $CODEBUILD_BUILD_ID | awk -F":" '{print $2}')
+
+    
+
+  build:
+
+    commands:
+
+      - "echo Build started on `date`"
+
+      - "echo Building the Docker image..."
+
+      - "docker build -t angularrepo ."
+
+      - echo $CODEBUILD_BUILD_NUMBER
+
+      - IMAGE_TAG=build-$(echo $CODEBUILD_BUILD_ID | awk -F":" '{print $2}')
+
+      - "docker tag angularrepo:latest 125571554996.dkr.ecr.ap-south-1.amazonaws.com/angularrepo:latest"
+
+      - ImageURI=$(cat imageDetail.json | jq -r '.ImageURI')
+
+      - printf '[{"name":"container_name","imageUri":"image_URI"}]' > angulartask.json
+
+      - sed -i -e "s|CONTAINER_NAME|$ContainerName|g" angulartask.json
+
+      - sed -i -e "s|IMAGE_URI|$ImageURI|g" angulartask.json
+
+      - cat angulartask.json
+
+ 
+
+  post_build:
+
+    commands:
+
+      - echo Build completed on `date`
+
+      - echo Pushing the Docker images...
+
+      - echo $CODEBUILD_BUILD_NUMBER
+
+      - IMAGE_TAG=build-$(echo $CODEBUILD_BUILD_ID | awk -F":" '{print $2}')
+
+      - docker push 125571554996.dkr.ecr.ap-south-1.amazonaws.com/angularrepo:latest
+
+      - echo Writing image definitions file...
+
+      - printf '[{"name":"angularcontainer","imageUri":"%s"}]'    125571554996.dkr.ecr.ap-south-1.amazonaws.com/angularrepo:latest > angulartask.json
+
+      - cat angulartask.json
+
+      - echo Start post_build...
+
+artifacts:
+
+  files:
+
+    - '**/*'
+
+    - imageDetail.json
+
+    - angulartask.json
+
+  discard-paths: no
