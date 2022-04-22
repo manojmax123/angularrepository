@@ -30,17 +30,17 @@ phases:
 
       - "echo Building the Docker image..."
 
-      - "docker build -t angularrepo ."
+      - docker build -t angularrepo .
 
       - echo $CODEBUILD_BUILD_NUMBER
 
       - IMAGE_TAG=build-$(echo $CODEBUILD_BUILD_ID | awk -F":" '{print $2}')
 
-      - "docker tag angularrepo:latest 125571554996.dkr.ecr.ap-south-1.amazonaws.com/angularrepo:latest"
+      - docker tag angularrepo:latest 125571554996.dkr.ecr.ap-south-1.amazonaws.com/angularrepo:latest
 
       - ImageURI=$(cat imageDetail.json | jq -r '.ImageURI')
 
-      - printf '[{"name":"container_name","imageUri":"image_URI"}]' > angulartask.json
+      - printf '[{"name":"newcontainer","imageUri":"image_URI"}]' > angulartask.json
 
       - sed -i -e "s|CONTAINER_NAME|$ContainerName|g" angulartask.json
 
@@ -66,9 +66,9 @@ phases:
 
       - echo Writing image definitions file...
 
-      - printf '[{"name":"angularcontainer","imageUri":"%s"}]'    125571554996.dkr.ecr.ap-south-1.amazonaws.com/angularrepo:latest > angulartask.json
+      - printf '[{"name":"newcontainer","imageUri":"%s"}]'    125571554996.dkr.ecr.ap-south-1.amazonaws.com/angularrepo:latest > newtask.json
 
-      - cat angulartask.json
+      - cat newtask.json
 
       - echo Start post_build...
 
@@ -80,6 +80,6 @@ artifacts:
 
     - imageDetail.json
 
-    - angulartask.json
+    - newtask.json
 
   discard-paths: no
