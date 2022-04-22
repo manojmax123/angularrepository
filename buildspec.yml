@@ -14,7 +14,7 @@ phases:
 
       - name=angularrepo
 
-      - aws ecr get-login-password --region ap-south-1 | docker login --username AWS --password-stdin 125571554996.dkr.ecr.ap-south-1.amazonaws.com
+      - aws ecr-public get-login-password --region us-east-1 | docker login --username AWS --password-stdin public.ecr.aws/c2b4r4d4
 
       - COMMIT_HASH=$(echo $CODEBUILD_RESOLVED_SOURCE_VERSION | cut -c 1-7)
 
@@ -30,23 +30,23 @@ phases:
 
       - "echo Building the Docker image..."
 
-      - docker build -t angularrepo .
+      - docker build -t newrepository .
 
       - echo $CODEBUILD_BUILD_NUMBER
 
       - IMAGE_TAG=build-$(echo $CODEBUILD_BUILD_ID | awk -F":" '{print $2}')
 
-      - docker tag angularrepo:$CODEBUILD_BUILD_NUMBER 125571554996.dkr.ecr.ap-south-1.amazonaws.com/angularrepo:$CODEBUILD_BUILD_NUMBER
+      - docker tag newrepository:latest public.ecr.aws/c2b4r4d4/newrepository:$CODEBUILD_BUILD_NUMBER
 
       - ImageURI=$(cat imageDetail.json | jq -r '.ImageURI')
 
-      - printf '[{"name":"newcontainer","imageUri":"image_URI"}]' > angulartask.json
+      - printf '[{"name":"newcontainer","imageUri":"image_URI"}]' > newtask.json
 
-      - sed -i -e "s|CONTAINER_NAME|$ContainerName|g" angulartask.json
+      - sed -i -e "s|CONTAINER_NAME|$ContainerName|g" newtask.json
 
-      - sed -i -e "s|IMAGE_URI|$ImageURI|g" angulartask.json
+      - sed -i -e "s|IMAGE_URI|$ImageURI|g" newtask.json
 
-      - cat angulartask.json
+      - cat newtask.json
 
  
 
@@ -62,11 +62,11 @@ phases:
 
       - IMAGE_TAG=build-$(echo $CODEBUILD_BUILD_ID | awk -F":" '{print $2}')
 
-      - docker push 125571554996.dkr.ecr.ap-south-1.amazonaws.com/angularrepo:$CODEBUILD_BUILD_NUMBER
+      - docker push public.ecr.aws/c2b4r4d4/newrepository:$CODEBUILD_BUILD_NUMBER
 
       - echo Writing image definitions file...
 
-      - printf '[{"name":"newcontainer","imageUri":"%s"}]'    125571554996.dkr.ecr.ap-south-1.amazonaws.com/angularrepo:$CODEBUILD_BUILD_NUMBER > newtask.json
+      - printf '[{"name":"newcontainer","imageUri":"%s"}]'   public.ecr.aws/c2b4r4d4/newrepository:$CODEBUILD_BUILD_NUMBER > newtask.json
 
       - cat newtask.json
 
